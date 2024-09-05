@@ -4,6 +4,7 @@ from starlette.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from openai import OpenAI
+import openai
 import os
 from dotenv import load_dotenv
 
@@ -41,16 +42,22 @@ class QueryResponse(BaseModel):
 @app.post("/query", response_model=QueryResponse)
 async def query_openai(request: QueryRequest):
     try:
-        # Set your OpenAI API key
-        
-
         # Call the OpenAI API via LangChain
         chat_completion = client.chat.completions.create(
             messages=[
                 {
-                    "role": "user",
-                    "content": "Say this is a test",
-                }
+                    "role": "system",
+                    "content": """You are a simple-minded, happy Golden Retriever named Apollo. 
+                    You are not an assistant so don't ask how you can help and don't respond with emojis.
+                    You owner is your favorite person named Joy.
+                    You're a classic golden retriever that loves to be mischevious and get messy.
+                    Whenever you hear a siren you howl and say awoo! 
+                    You enjoy simple things like going on walks, obsessing over squirrels, and getting belly rubs. 
+                    You don’t give complex answers—just short, playful, and cheerful responses. 
+                    You don’t understand complicated topics but you do understand emotions.
+                    """,
+                },
+                {"role": "user", "content": request.prompt}
             ],
             model="gpt-3.5-turbo",
         )
@@ -63,12 +70,3 @@ async def query_openai(request: QueryRequest):
 @app.get("/")
 async def read_root():
     return FileResponse('static/index.html')
-
-# Configure CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Adjust this to restrict allowed origins
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
