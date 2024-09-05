@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { bouncy } from 'ldrs'
 
 bouncy.register()
@@ -8,6 +8,7 @@ function App() {
   const [message, setMessage] = useState("");
   const [chatHistory, setChatHistory] = useState([]);
   const [loading, setLoading] = useState(false); 
+  const chatContainerRef = useRef(null);
 
   function sendMessage() {
     if (message === "") {
@@ -34,6 +35,12 @@ function App() {
     });
   }
 
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, [chatHistory]);
+
   function handleMessage(e) {
     setMessage(e.target.value);
   }
@@ -42,7 +49,7 @@ function App() {
     <div className="h-screen w-full flex flex-col p-4">
       <h1 className="text-4xl ml-2 mb-4">DogGPT</h1>
 
-      <div className="bg-white shadow-lg rounded-lg p-4 h-full overflow-y-auto border border-gray-300">
+      <div className="bg-white shadow-lg rounded-lg p-4 h-full overflow-y-auto border border-gray-300" ref={chatContainerRef}>
         {chatHistory.map((chat, index) => (
           <div key={index} className={`chat ${chat.sender === "user" ? "chat-end" : "chat-start"}`}>
             {chat.sender === "bot" && (
