@@ -72,9 +72,12 @@ function App() {
       .finally(() => setLoading(false));
   }
   useEffect(() => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-    }
+    const scrollTimeout = setTimeout(() => {
+      if (chatContainerRef.current) {
+        chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+      }
+    }, 100);
+    return () => clearTimeout(scrollTimeout);
   }, [chatHistory]);
 
   const handleFileParsed = ({ fullData, datasetInfo }) => {
