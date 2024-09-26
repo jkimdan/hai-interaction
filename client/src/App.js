@@ -6,7 +6,7 @@ import MessageInput from './components/MessageInput';
 import { bouncy } from 'ldrs';
 
 bouncy.register();
-const url = "http://127.0.0.1:8000/";
+const url = "https://hai-interaction.onrender.com/";
 function App() {
   const [message, setMessage] = useState("");
   const [chatHistory, setChatHistory] = useState([]);
