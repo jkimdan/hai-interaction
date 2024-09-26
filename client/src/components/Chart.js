@@ -4,6 +4,8 @@ import { VegaLite } from 'react-vega';
 function Chart({ spec, data }) {
   const specWithData = {
     ...spec,
+    width: 225, 
+    height: 225,
     data: {
         name: 'data',
     },
@@ -13,7 +15,7 @@ function Chart({ spec, data }) {
     data: data
   };
   return (
-    <div className="flex justify-center rounded-lg"> 
+    <div className="flex justify-center ml-10 my-3"> 
       <VegaLite spec={specWithData} data={vegaData} />
     </div>
   );
