@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.staticfiles import StaticFiles
 from starlette.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,6 +7,8 @@ from openai import OpenAI
 import openai
 import os
 from dotenv import load_dotenv
+import json
+from typing import List, Dict, Any
 
 # Load environment variables from .env file
 load_dotenv()
@@ -34,35 +36,82 @@ client = OpenAI(
 # Define request and response models
 class QueryRequest(BaseModel):
     prompt: str
+    dataset_info: List[Dict[str, Any]]
 
+class APIResponse(BaseModel):
+    spec: dict = None
+    description: str
 class QueryResponse(BaseModel):
-    response: str
+    response: APIResponse
 
-# Endpoint to interact with OpenAI API via LangChain
 @app.post("/query", response_model=QueryResponse)
 async def query_openai(request: QueryRequest):
     try:
-        # Call the OpenAI API via LangChain
-        chat_completion = client.chat.completions.create(
-            messages=[
-                {
-                    "role": "system",
-                    "content": """You are a simple-minded, happy Golden Retriever named Apollo. 
-                    You are not an assistant so don't ask how you can help and don't respond with emojis.
-                    You owner is your favorite person named Joy.
-                    You're a classic golden retriever that loves to be mischevious and get messy.
-                    Whenever you hear a siren you howl and say awoo! 
-                    You enjoy simple things like going on walks, obsessing over squirrels, and getting belly rubs. 
-                    You don’t give complex answers—just short, playful, and cheerful responses. 
-                    You don’t understand complicated topics but you do understand emotions.
-                    """,
-                },
-                {"role": "user", "content": request.prompt}
-            ],
-            model="gpt-3.5-turbo",
+        dataset_info = request.dataset_info
+        if not dataset_info:
+            return QueryResponse(response=APIResponse(description="Please upload a dataset before sending any messages."))
+        dataset_info_str = "\n".join(
+            f"Column: {col['column_name']}\nType: {col['data_type']}\nSample Values: {col['sample_values']}\n"
+            for col in dataset_info
         )
-
-        return QueryResponse(response=chat_completion.choices[0].message.content)
+       
+        # Construct the messages
+        messages = [
+            {
+                "role": "system",
+                "content": (
+                    "You are an AI assistant that generates Vega-Lite specifications based on user queries."
+                    "Answer the user's questions about the dataset with textual explanations when appropriate."
+                    "Only generate a Vega-Lite chart if the user's query seems to ask for a visualization."
+                    "You are provided with dataset information and should reference the dataset directly using 'data': {'name': 'data'}. "
+                    "Do not include 'url' fields or hardcoded external references for the dataset."
+                    "If the query is irrelevant or unanswerable based on the dataset, politely explain to the user that you cannot fulfill the request."
+                    "For example: The dataset is related to cars. The user asks: How are you? You might respond: 'How are you' is not relevant to the dataset, which contains information about cars and their specifications."
+                )
+            },
+            {
+                "role": "system",
+                "content": f"Dataset Information:\n{dataset_info_str}"
+            },
+            {
+                "role": "user",
+                "content": request.prompt
+            }
+        ]
+        schema = {
+            "name":"vegaschema",
+            "schema": {
+            "type": "object",
+            "properties": {
+                "spec": {
+                    "type": "object",
+                    "description": "The well designed Vega-Lite specification in JSON format."
+                },
+                "description": {
+                    "type": "string",
+                    "description": "A brief textual description of the generated chart, or a response to a user query"
+                }
+            },
+            "required": ["spec", "description"]
+            }
+}
+        print("attempting api call")
+        chat_completion = client.beta.chat.completions.parse(
+            model="gpt-4o-mini", 
+            messages=messages,
+            response_format={"type":"json_schema", "json_schema": schema}
+        )
+        reply = chat_completion.choices[0].message      
+        try:  
+            message = json.loads(reply.content)
+            description = message.get("description")
+            spec = message.get("spec")
+            if description and not spec:
+                return QueryResponse(response=APIResponse(description=description))
+            if spec and description:
+                return QueryResponse(response={"spec": spec, "description":description})
+        except json.JSONDecodeError:
+            return QueryResponse(response=APIResponse(description=reply.content))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

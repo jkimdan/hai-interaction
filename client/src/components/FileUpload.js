@@ -11,8 +11,10 @@ function FileUpload({ onFileParsed }) {
   const handleDrop = (e) => {
     e.preventDefault();
     const file = e.dataTransfer.files[0];
-    if (file) {
+    if (file && file.name.endsWith('.csv')) {
       readCSVFile(file);
+    } else {
+      alert('Only CSV files are allowed.');
     }
   };
 
@@ -21,12 +23,30 @@ function FileUpload({ onFileParsed }) {
     reader.onload = (event) => {
       const text = event.target.result;
       const parsedData = csvParse(text, autoType);
-      onFileParsed(parsedData); // Send parsed data back to parent
+
+      const datasetInfo = extractDatasetInfo(parsedData);
+      onFileParsed({ fullData: parsedData, datasetInfo });
+
+     
     };
     reader.onerror = (error) => {
       console.error('Error reading CSV file:', error);
     };
     reader.readAsText(file);
+  };
+
+  const extractDatasetInfo = (parsedData) => {
+    const columns = parsedData.columns;
+    const datasetInfo = columns.map((column) => {
+      const sampleValues = parsedData.slice(0, 20).map((row) => row[column]);
+      const dataType = typeof sampleValues.find((val) => val !== null && val !== undefined);
+      return {
+        column_name: column,
+        data_type: dataType,
+        sample_values: sampleValues,
+      };
+    });
+    return datasetInfo;
   };
 
   return (
