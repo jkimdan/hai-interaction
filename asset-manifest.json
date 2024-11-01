@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/hai-interaction/static/css/main.610e4e2f.css",
-    "main.js": "/hai-interaction/static/js/main.d62fee9a.js",
+    "main.js": "/hai-interaction/static/js/main.9e9431a7.js",
     "static/js/453.419a5d54.chunk.js": "/hai-interaction/static/js/453.419a5d54.chunk.js",
     "index.html": "/hai-interaction/index.html",
     "main.610e4e2f.css.map": "/hai-interaction/static/css/main.610e4e2f.css.map",
-    "main.d62fee9a.js.map": "/hai-interaction/static/js/main.d62fee9a.js.map",
+    "main.9e9431a7.js.map": "/hai-interaction/static/js/main.9e9431a7.js.map",
     "453.419a5d54.chunk.js.map": "/hai-interaction/static/js/453.419a5d54.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.610e4e2f.css",
-    "static/js/main.d62fee9a.js"
+    "static/js/main.9e9431a7.js"
   ]
 }
