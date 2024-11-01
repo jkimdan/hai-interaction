@@ -169,7 +169,7 @@ async def query_openai(request: QueryRequest):
     try:
         dataset_info = request.dataset_info
         file_url = request.file_url
-        file_path = file_url.replace("http://127.0.0.1:8000/", "")
+        file_path = file_url.replace("https://hai-interaction.onrender.com/", "")
 
         if not dataset_info:
             return QueryResponse(response=APIResponse(description="Please upload a dataset before sending any messages."))
@@ -305,6 +305,13 @@ def print_blue(*strings):
     print("\033[94m" + " ".join(strings) + "\033[0m")
 
 
+def delete_existing_files():
+    for filename in os.listdir(UPLOAD_DIRECTORY):
+        file_path = os.path.join(UPLOAD_DIRECTORY, filename)
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+            print(f"Deleted existing file: {file_path}")
+
 UPLOAD_DIRECTORY = "static/uploads"
 @app.post("/upload")
 async def upload_file(file: UploadFile, request: Request):
@@ -313,6 +320,8 @@ async def upload_file(file: UploadFile, request: Request):
         os.makedirs(UPLOAD_DIRECTORY)
 
     file_path = os.path.join(UPLOAD_DIRECTORY, file.filename)
+
+    delete_existing_files()
 
     # Save the file to the static directory
     with open(file_path, "wb") as f:
