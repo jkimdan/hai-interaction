@@ -1,5 +1,5 @@
 import React from 'react';
-import Chart from './Chart'; // Import the Chart component
+import Chart from './Chart'; 
 
 function Chat({ chatHistory, loading, chatContainerRef, csvData }) {
   return (
@@ -19,7 +19,7 @@ function Chat({ chatHistory, loading, chatContainerRef, csvData }) {
               <div className="w-10 rounded-full">
                 <img
                   alt="Vision"
-                  src="https://pbs.twimg.com/profile_images/1816871301597786112/7W8tnSY8_400x400.jpg"
+                  src="https://posterspy.com/wp-content/uploads/2015/05/AVENGERS_VISION_thedarkinker.jpg"
                 />
               </div>
             </div>
@@ -54,7 +54,7 @@ function Chat({ chatHistory, loading, chatContainerRef, csvData }) {
             <div className="w-10 rounded-full">
               <img
                 alt="Vision"
-                src="https://pbs.twimg.com/profile_images/1816871301597786112/7W8tnSY8_400x400.jpg"
+                src="https://posterspy.com/wp-content/uploads/2015/05/AVENGERS_VISION_thedarkinker.jpg"
               />
             </div>
           </div>

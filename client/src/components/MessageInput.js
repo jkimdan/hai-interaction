@@ -1,7 +1,9 @@
-function MessageInput({ message, setMessage, sendMessage, loading }) {
+function MessageInput({ message, setMessage, sendMessage, loading, clearMessages }) {
     function handleMessage(e) {
       setMessage(e.target.value);
     }
+
+    
   
     return (
       <div className="flex gap-2 p-4">
@@ -22,6 +24,9 @@ function MessageInput({ message, setMessage, sendMessage, loading }) {
         <button className="btn" onClick={sendMessage} disabled={loading}>
           Send
         </button>
+        <button className="btn" onClick={clearMessages} disabled={loading}>
+        Clear Chat
+      </button>
       </div>
     );
   }

@@ -6,7 +6,7 @@ import MessageInput from './components/MessageInput';
 import { bouncy } from 'ldrs';
 
 bouncy.register();
-const url = "https://hai-interaction.onrender.com/";
+const url = "https://hai-interaction.onrender.com";
 function App() {
   const [message, setMessage] = useState("");
   const [chatHistory, setChatHistory] = useState([]);
@@ -15,15 +15,20 @@ function App() {
   const [showTable, setShowTable] = useState(true);
   const chatContainerRef = useRef(null);
   const [datasetInfo, setDatasetInfo] = useState([]);
+  const [fileUrl, setFileUrl] = useState("")
+  
+  function clearChatHistory() {
+    setChatHistory([]);
+  }
   
   function sendMessage() {
     if (message === "") return;
     setChatHistory((prev) => [...prev, { sender: "user", message }]);
     setMessage("");
     setLoading(true);
-    fetch(`${url}query`, {
+    fetch(`${url}/query`, {
       method: "POST",
-      body: JSON.stringify({ prompt: message, dataset_info: datasetInfo }),
+      body: JSON.stringify({ prompt: message, dataset_info: datasetInfo, file_url: fileUrl }),
       headers: { "Content-Type": "application/json" },
     })
       .then((response) => response.json())
@@ -80,9 +85,10 @@ function App() {
     return () => clearTimeout(scrollTimeout);
   }, [chatHistory]);
 
-  const handleFileParsed = ({ fullData, datasetInfo }) => {
+  const handleFileParsed = ({ fullData, datasetInfo, fileUrl }) => {
     setCsvData(fullData);       
-    setDatasetInfo(datasetInfo); 
+    setDatasetInfo(datasetInfo);
+    setFileUrl(fileUrl);
   };
 
   return (
@@ -91,7 +97,7 @@ function App() {
       <FileUpload onFileParsed={handleFileParsed} />
       <TablePreview csvData={csvData} showTable={showTable} toggleTable={() => setShowTable(!showTable)} />
       <Chat chatHistory={chatHistory} loading={loading} chatContainerRef={chatContainerRef} csvData={csvData} />
-      <MessageInput message={message} setMessage={setMessage} sendMessage={sendMessage} loading={loading} />
+      <MessageInput message={message} setMessage={setMessage} sendMessage={sendMessage} loading={loading} clearMessages={clearChatHistory} />
     </div>
   );
 }

@@ -1,49 +1,57 @@
 import { csvParse, autoType } from 'd3-dsv';
+import { uploadFile } from './appService';
 
 function FileUpload({ onFileParsed }) {
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      readCSVFile(file);
+      handleCSVFile(file);
     }
   };
-
   const handleDrop = (e) => {
     e.preventDefault();
     const file = e.dataTransfer.files[0];
     if (file && file.name.endsWith('.csv')) {
-      readCSVFile(file);
+      handleCSVFile(file);
     } else {
       alert('Only CSV files are allowed.');
     }
   };
 
-  const readCSVFile = (file) => {
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const text = event.target.result;
-      const parsedData = csvParse(text, autoType);
+  const handleCSVFile = async (file) => {
+    try {
+      // Upload the file to backend and receive the file URL
+      const formData = new FormData();
+      formData.append("file", file);
+      const fileUrl = await uploadFile(formData);
 
-      const datasetInfo = extractDatasetInfo(parsedData);
-      onFileParsed({ fullData: parsedData, datasetInfo });
-
-     
-    };
-    reader.onerror = (error) => {
-      console.error('Error reading CSV file:', error);
-    };
-    reader.readAsText(file);
+      if (fileUrl) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const text = event.target.result;
+          const parsedData = csvParse(text, autoType);
+          const datasetInfo = extractDatasetInfo(parsedData);
+          
+          // Update state and provide dataset info along with file URL
+          onFileParsed({ fullData: parsedData, datasetInfo, fileUrl });
+        };
+        reader.onerror = (error) => {
+          console.error('Error reading CSV file:', error);
+        };
+        reader.readAsText(file);
+      }
+    } catch (error) {
+      console.error('Error handling CSV file upload:', error);
+    }
   };
 
   const extractDatasetInfo = (parsedData) => {
     const columns = parsedData.columns;
     const datasetInfo = columns.map((column) => {
-      const sampleValues = parsedData.slice(0, 20).map((row) => row[column]);
-      const dataType = typeof sampleValues.find((val) => val !== null && val !== undefined);
+      const dataType = typeof parsedData.find((row) => row[column] !== null && row[column] !== undefined)[column];
       return {
         column_name: column,
         data_type: dataType,
-        sample_values: sampleValues,
       };
     });
     return datasetInfo;
